@@ -1,9 +1,25 @@
-import Header from './components/header/header';
-
+import { Route, Routes } from 'react-router-dom';
+import { Header } from './components/header';
+import { Task } from './pages/board';
+import { Login } from './pages/login';
+import { useAuth } from "./components/authContext/AuthContext";
 function App() {
+  const {user, updateUser} = useAuth();
+
   return (
     <>
-      <Header/>
+      
+        {user?
+          <>
+          <Header/>
+          <Routes> 
+            <Route path="/board" element={<Task/>}/>
+        </Routes>
+          </>:
+        <Routes> 
+        <Route path="*" element={<Login/>}/>
+        </Routes>
+        }
     </>
   );
 }
