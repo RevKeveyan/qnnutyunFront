@@ -106,11 +106,11 @@ export const Task = () => {
       .delete(`http://localhost:5000/delete-task/${id}`, config)
       .then((response) => {
         successToast("Task deleted");
-        setUsers([...response.data.result]);
         setLoaded(true);
         
       })
       .catch((err) => {
+        console.log(err);
         if(err)errorToast("Delete error");
         
       });
