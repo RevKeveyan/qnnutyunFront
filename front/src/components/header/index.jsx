@@ -89,14 +89,17 @@ export const Header = () => {
             <Link to="/board">Board</Link>
           </GridItem>
           <GridItem>
-            <AddUserModal button={"Add User"} />
-          </GridItem>
-          <GridItem>
             <AddTaskModal
               onSubmit={onSubmit}
               button={"Add Task"}
             />
           </GridItem>
+          {user.role==="admin"?<>
+          <GridItem>
+            <AddUserModal button={"Add User"} />
+          </GridItem>
+          
+          </>:null}
         </Grid>
       </Container>
       <Box position="absolute" top="0" right="0">
