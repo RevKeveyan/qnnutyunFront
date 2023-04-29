@@ -4,7 +4,7 @@ import { Task } from './pages/board';
 import { Login } from './pages/login';
 import { useAuth } from "./components/authContext/AuthContext";
 function App() {
-  const {user, updateUser} = useAuth();
+  const {user} = useAuth();
 
   return (
     <>
@@ -14,11 +14,12 @@ function App() {
           <Header/>
           <Routes> 
             <Route path="/board" element={<Task/>}/>
-        </Routes>
+            <Route path="/*" element={<Task/>}/>
+          </Routes>
           </>:
-        <Routes> 
-        <Route path="*" element={<Login/>}/>
-        </Routes>
+            <Routes>
+                <Route path="*" element={<Login/>}/>
+            </Routes>
         }
     </>
   );

@@ -19,6 +19,7 @@ import { AddTaskModal } from "../modals/add-task-modal";
 import { AddUserModal } from "../modals/add-user-modal";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { useAuth } from "../authContext/AuthContext";
+import { useState } from "react";
 export const Header = () => {
   const {
     register,
@@ -29,7 +30,7 @@ export const Header = () => {
   } = useForm({
     mode: "onBlur",
   });
-  const {user, setUser} = useAuth();
+  const { user, setUser } = useAuth();
   const toast = useToast();
   const successToast = (message) => {
     return toast({
@@ -66,11 +67,12 @@ export const Header = () => {
       });
   };
 
-  const logOut = () =>{
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const logOut = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
-  }
+  };
+
   return (
     <Box position="relative" backgroundColor="#319795">
       <Container mb={5}>
@@ -83,7 +85,6 @@ export const Header = () => {
           templateColumns={`repeat(${true ? 4 : 2}, auto)`}
           gap={10}
         >
-          
           <GridItem>
             <Link to="/board">Board</Link>
           </GridItem>
@@ -91,11 +92,14 @@ export const Header = () => {
             <AddUserModal button={"Add User"} />
           </GridItem>
           <GridItem>
-            <AddTaskModal onSubmit={onSubmit} button={"Add Task"} />
+            <AddTaskModal
+              onSubmit={onSubmit}
+              button={"Add Task"}
+            />
           </GridItem>
         </Grid>
       </Container>
-        <Box position="absolute" top="0" right="0">
+      <Box position="absolute" top="0" right="0">
         <Menu>
           <MenuButton
             as={IconButton}
@@ -104,11 +108,13 @@ export const Header = () => {
             variant="outline"
           />
           <MenuList>
-            <MenuItem>
-              {user.firstName+ " " +user.lastName}
-            </MenuItem>
-            <MenuItem>
-             <Button onClick={logOut} backgroundColor="tomato">Log Out</Button>
+            <MenuItem>{user.firstName + " " + user.lastName}</MenuItem>
+            <MenuItem
+              borderRadius="5px"
+              onClick={logOut}
+              backgroundColor="tomato"
+            >
+              Log Out
             </MenuItem>
           </MenuList>
         </Menu>

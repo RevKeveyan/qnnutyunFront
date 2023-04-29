@@ -7,12 +7,14 @@ import {
   CardFooter,
   Container,
   Divider,
+  FormControl,
   Grid,
   GridItem,
   Heading,
   Select,
   Stack,
   Text,
+  useToast,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
@@ -31,6 +33,9 @@ export const Task = () => {
   });
   const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [status, seStstus] = useState(false);
 
   const getAllAdminTasks = async () => {
     const token = localStorage.getItem("token");
@@ -44,8 +49,26 @@ export const Task = () => {
       })
       .catch((err) => {});
   };
-
-  const getAllUserTasks = async (id) => {
+  const toast = useToast();
+  const successToast = (message) => {
+    return toast({
+      title: "Account created.",
+      description: message,
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+  const errorToast = (message) => {
+    return toast({
+      title: "Sorry.",
+      description: message,
+      status: "error",
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+  const getAllUserTasks = async () => {
     const token = localStorage.getItem("token");
     const config = {
       headers: { Authentication: token },
@@ -54,11 +77,61 @@ export const Task = () => {
       .get(`http://localhost:5000/tasks/user/${user._id}`, config)
       .then((response) => {
         setTasks([...response.data.result]);
+        setLoaded(true);
       })
       .catch((err) => {});
   };
 
+  const getAllUsers = async () => {
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: { Authentication: token },
+    };
+
+    const response = await axios
+      .get(`http://localhost:5000/users`, config)
+      .then((response) => {
+        setUsers([...response.data.result]);
+        setLoaded(true);
+      })
+      .catch((err) => {});
+  };
+
+  const onDelete = async (id) => {
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: { Authentication: token },
+    };
+    const response = await axios
+      .delete(`http://localhost:5000/delete-task/${id}`, config)
+      .then((response) => {
+        successToast("Task deleted");
+        setUsers([...response.data.result]);
+        setLoaded(true);
+        
+      })
+      .catch((err) => {
+        if(err)errorToast("Delete error");
+        
+      });
+  };
+  const onEdit = async (data) => {
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: { Authentication: token },
+    };
+    const response = await axios
+      .put("http://localhost:5000/update-task", data, config)
+      .then((response) => {
+        successToast("Task Updated");
+      })
+      .catch((error) => {
+        errorToast(error.response.data.message);
+      });
+  };
+
   useEffect(() => {
+    getAllUsers();
     if (user.role === "admin") {
       getAllAdminTasks();
     } else {
@@ -66,14 +139,14 @@ export const Task = () => {
     }
   }, []);
 
-
-  const renderTasks = (status) =>{
-    const newFilters = tasks.filter(task=> task.status === status)
-    newFilters.map((task) => {
+  const renderTasks = (status) => {
+    const newTasks = tasks.filter((task) => task.status === status);
+    return newTasks.map((task) => {
       return (
-        <Card mt={10} maxW="sm">
+        <Card border="1px solid green" key={task?._id} mt={10} maxW="sm">
           <CardBody position="relative">
             <Button
+              onClick={() => onDelete(task?._id)}
               backgroundColor="tomato"
               position="absolute"
               top="0"
@@ -88,12 +161,14 @@ export const Task = () => {
               left="0"
             >
               <AddTaskModal
+                onSubmit={onEdit}
+                data={task}
                 backgroundColor="#0074E0"
+                editble={true}
                 position="absolute"
                 top="0"
                 left="0"
                 button={<AiFillEdit />}
-                data={""}
               />
             </Button>
 
@@ -106,57 +181,26 @@ export const Task = () => {
           </CardBody>
           <Divider />
           <CardFooter>
-            <Grid
-              gap={10}
-              alignContent="center"
-              templateColumns="repeat(2, auto)"
-            >
-              <GridItem>
-                {true ? (
-                  <Select
-                    mb={5}
-                    placeholder="Users"
-                    {...register("selectedUser")}
-                  >
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
-                  </Select>
-                ) : (
-                  <Text p={3}>User Name</Text>
-                )}
-              </GridItem>
-              <GridItem>
-                <Select
-                  mb={5}
-                  placeholder="Status"
-                  {...register("selectedStatus")}
-                >
-                  <option value="option1">Option 1</option>
-                  <option value="option2">Option 2</option>
-                  <option value="option3">Option 3</option>
-                </Select>
-              </GridItem>
-            </Grid>
+            <Box>
+              <Grid
+                gap={10}
+                alignContent="center"
+                templateColumns="repeat(2, auto)"
+              >
+                <GridItem>
+                  <Text></Text>
+                </GridItem>
+                <GridItem>
+                  <Text>{new Date(task.createdAt).toLocaleString()}</Text>
+                </GridItem>
+              </Grid>
+            </Box>
           </CardFooter>
-          <Box>
-            <Grid
-              gap={10}
-              alignContent="center"
-              templateColumns="repeat(2, auto)"
-            >
-              <GridItem>
-                <Text></Text>
-              </GridItem>
-              <GridItem>
-                <Text>Created: 20/12/23</Text>
-              </GridItem>
-            </Grid>
-          </Box>
         </Card>
       );
-    })
-  }
+    });
+  };
+
   return (
     <Box>
       <Grid
@@ -173,22 +217,25 @@ export const Task = () => {
           <Heading borderBottom="1px solid green" mb={4} size="md">
             TO DO
           </Heading>
-          
+          {tasks.length > 0 ? renderTasks("toDo") : <Text>text</Text>}
         </GridItem>
         <GridItem>
           <Heading borderBottom="1px solid green" mb={4} size="md">
             IIN PROGRESS
           </Heading>
+          {tasks.length > 0 ? renderTasks("inProgress") : <Text>text</Text>}
         </GridItem>
         <GridItem>
           <Heading borderBottom="1px solid green" mb={4} size="md">
             READY FOR QA
           </Heading>
+          {tasks.length > 0 ? renderTasks("readyQA") : <Text>text</Text>}
         </GridItem>
         <GridItem>
           <Heading borderBottom="1px solid green" mb={4} size="md">
             DONE
           </Heading>
+          {tasks.length > 0 ? renderTasks("done") : <Text>text</Text>}
         </GridItem>
       </Grid>
     </Box>

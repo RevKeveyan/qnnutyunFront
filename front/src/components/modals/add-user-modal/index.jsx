@@ -55,9 +55,13 @@ const errorToast = (message) => {
 };
 
   const onSignUp = async (data) => {
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: { Authentication: token },
+    };
     const allData = {...data,createdAt:Date.now(),role:"user"};
     await axios
-      .post("http://localhost:5000/sign-up-user", allData)
+      .post("http://localhost:5000/sign-up-user", allData,config)
       .then(function (response) {
         successToast();
         reset();

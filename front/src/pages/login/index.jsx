@@ -42,9 +42,12 @@ export const Login = () => {
           isClosable: true,
       });
   };
+  const refresh = () => window.location.reload(true)
+
+
 
   const signIn = async (data) => {
-    await axios.post("http://localhost:5000/sign-in", data) 
+    const request = await axios.post("http://localhost:5000/sign-in", data) 
             .then((response) => {
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));

@@ -18,12 +18,15 @@ import {
   Text,
   Select,
   Textarea,
+  Box,
 } from "@chakra-ui/react";
 import axios from "axios";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../authContext/AuthContext";
 
-export const AddTaskModal = ({onSubmit,button}) => {
+export const AddTaskModal = ({onSubmit,button,setAssignedUserName,data, editble}) => {
   const {
     register,
     handleSubmit,
@@ -33,12 +36,29 @@ export const AddTaskModal = ({onSubmit,button}) => {
   } = useForm({
     mode: "onBlur",
   });
+  const [users, setUsers] = useState([]);
+  const getAllUsers = async() => {
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: { Authentication: token },
+    };
 
+    const response = await axios
+      .get(`http://localhost:5000/users`, config)
+      .then((response) => {
+        setUsers([...response.data.result]);
+      })
+      .catch((err) => {});
+  };
 
-
-
+  useEffect(() => {
+    getAllUsers();
+    reset(data)
+  }, []);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+
   return (
     <>
       <Text cursor="pointer" onClick={onOpen}>{button}</Text>
@@ -84,11 +104,23 @@ export const AddTaskModal = ({onSubmit,button}) => {
                     </Text>
                 <FormLabel>User Name</FormLabel>
                 
-                <Select mb={5} placeholder="Select option"  {...register("assignedUser")}>
-                  <option value="option1">Option 1</option>
-                  <option value="option2">Option 2</option>
-                  <option value="option3">Option 3</option>
+                <Select mb={5} placeholder="Users"  {...register("assignedUserId")}>
+                {users?.map(user =>{
+                      return <option value={user._id} >{user.firstName} {user.lastName}</option>
+                    })}
                 </Select>
+                { editble ?<Box>
+                  <Select
+                    mb={5}
+                    placeholder="Status"
+                    {...register("status")}
+                  >
+                    <option value="toDo">To Do</option>
+                    <option value="inProgress">In Progress</option>
+                    <option value="readyQA">Ready For QA</option>
+                    <option value="done">Done</option>
+                  </Select>
+                </Box>:null}
                 <Center>
                   <Button
                     borderColor="#08BDA9"
@@ -101,6 +133,7 @@ export const AddTaskModal = ({onSubmit,button}) => {
                   </Button>
                 </Center>
               </FormControl>
+              
             </form>
           </ModalBody>
           <Center>
